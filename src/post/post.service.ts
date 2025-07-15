@@ -48,15 +48,17 @@ export class PostService {
     return new PaginatedResponseDto(items, totalItems, page, pageSize);
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return this.postModel.findById(id).exec();
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return this.postModel.findByIdAndUpdate(id, updatePostDto).exec();
+  update(id: string, updatePostDto: UpdatePostDto) {
+    return this.postModel
+      .findByIdAndUpdate(id, updatePostDto, { new: true })
+      .exec();
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return this.postModel.findByIdAndDelete(id).exec();
   }
 }
