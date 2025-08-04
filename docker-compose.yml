@@ -1,0 +1,40 @@
+
+services:
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=${PORT}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ENV=${ENV}
+    volumes:
+      - ./temp:/app/temp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    networks:
+      - backend_app-network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=pixel-san-db
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - backend_app-network
+
+volumes:
+  mongo_data:
+
+networks:
+  backend_app-network:
+    external: true

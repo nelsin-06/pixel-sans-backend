@@ -21,6 +21,9 @@ export class Post implements PostInterface {
 
   @Prop({ type: String, default: null })
   image?: string;
+
+  @Prop({ type: String, required: true, default: null })
+  youtubeChannelName: string;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

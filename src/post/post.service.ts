@@ -3,7 +3,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginationQueryDto } from './dto/pagination-query.dto';
 import { PaginatedResponseDto } from './dto/paginated-response.dto';
-import { Post } from './schema/categoria-productos.schema';
+import { Post } from './schema/post.schema';
 import { Model, FilterQuery } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
@@ -15,12 +15,57 @@ export class PostService {
   ) {}
 
   create(createPostDto: CreatePostDto) {
-    const createdPost = new this.postModel(createPostDto);
-    return createdPost.save();
+    try {
+      const createdPost = new this.postModel(createPostDto);
+      return createdPost.save();
+    } catch (error) {
+      console.log('🚀 ~ PostService ~ create ~ error:', error);
+      return null;
+    }
   }
 
   findAll() {
     return this.postModel.find().exec();
+  }
+
+  private calculateSimilarity(str1: string, str2: string): number {
+    const longer = str1.length > str2.length ? str1 : str2;
+    const shorter = str1.length > str2.length ? str2 : str1;
+    const longerLength = longer.length;
+
+    if (longerLength === 0) {
+      return 1.0;
+    }
+
+    const editDistance = (a: string, b: string): number => {
+      const matrix: number[][] = Array.from({ length: a.length + 1 }, () =>
+        Array<number>(b.length + 1).fill(0),
+      );
+
+      for (let i = 0; i <= a.length; i++) {
+        for (let j = 0; j <= b.length; j++) {
+          if (i === 0) {
+            matrix[i][j] = j;
+          } else if (j === 0) {
+            matrix[i][j] = i;
+          } else if (a[i - 1] === b[j - 1]) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] =
+              1 +
+              Math.min(
+                matrix[i - 1][j],
+                matrix[i][j - 1],
+                matrix[i - 1][j - 1],
+              );
+          }
+        }
+      }
+
+      return matrix[a.length][b.length];
+    };
+
+    return (longerLength - editDistance(longer, shorter)) / longerLength;
   }
 
   async findAllPaginated(
@@ -29,10 +74,19 @@ export class PostService {
     const { page = 1, pageSize = 10, category = 'all' } = paginationQuery;
     const skip = (page - 1) * pageSize;
 
-    // Construir el filtro de consulta
     const filter: FilterQuery<Post> = {};
     if (category !== 'all') {
-      filter.category = { $regex: new RegExp(category, 'i') };
+      const allPosts = await this.postModel.find().exec();
+      const filteredPosts = allPosts.filter((post) => {
+        const similarity = this.calculateSimilarity(
+          post.category.toLowerCase(),
+          category.toLowerCase(),
+        );
+        return similarity >= 0.5; // 50% de similitud
+      });
+
+      const filteredIds = filteredPosts.map((post) => post._id);
+      filter._id = { $in: filteredIds };
     }
 
     const [items, totalItems] = await Promise.all([

@@ -19,7 +19,12 @@ export class PostController {
 
   @Post()
   create(@Body() createPostDto: CreatePostDto) {
-    return this.postService.create(createPostDto);
+    try {
+      return this.postService.create(createPostDto);
+    } catch (error) {
+      console.log('🚀 ~ PostController ~ create ~ error:', error);
+      return null;
+    }
   }
 
   @Get()
