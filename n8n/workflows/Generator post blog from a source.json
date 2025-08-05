@@ -1,0 +1,1053 @@
+{
+  "name": "Generator post blog from a source",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -1616
+      ],
+      "id": "3ceb63a8-91b7-44cd-a353-c304af61318e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "Give me a list of 25 currently popular and relevant YouTube channel names, each focused on one or more of the following games:\n- Free Fire\n- Brawl Stars\n- Roblox\n- Valorant\n- Mage Arena\nThe list should include a mix of channels (big and mid-size), and each entry should briefly state which game(s) they focus on.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -16,
+        -1616
+      ],
+      "id": "9d018ee6-b823-41ae-8d1e-e21f74a646d9",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -1344
+      ],
+      "id": "250a0b8c-747b-493d-acca-bfa323e145a4",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "y6eopVfbR1CLu5t9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function elegirAlAzar(arr, cantidad) {\n  if (!Array.isArray(arr)) throw new Error(\"El primer argumento debe ser un array.\");\n  if (typeof cantidad !== 'number' || cantidad < 1) throw new Error(\"La cantidad debe ser un número mayor que 0.\");\n\n  const mezclado = [...arr];\n  for (let i = mezclado.length - 1; i > 0; i--) {\n    const j = Math.floor(Math.random() * (i + 1));\n    [mezclado[i], mezclado[j]] = [mezclado[j], mezclado[i]];\n  }\n  return mezclado.slice(0, Math.min(cantidad, mezclado.length));\n}\n\n\nconst channelNames = $input.first().json.output.data.map(channelInfo => channelInfo.channelName);\n\nconst seleccion = elegirAlAzar(channelNames, 5);\n\nreturn [\n  {\n    json: {\n      canales: seleccion\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        384,
+        -1616
+      ],
+      "id": "b2bac50a-7a69-4289-b47a-a9527b9ed1ca",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "canales",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        608,
+        -1616
+      ],
+      "id": "4a3b5972-ad24-4c44-bc72-57a29a1e9461",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q={{ $json.canales }}&maxResults=1&key={{ $env[\"YOUTUBE_API_KEY\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        -1616
+      ],
+      "id": "8e2bccd1-5f4b-4fdc-8170-048c9738e37e",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=**Your Optimized Prompt:**\n\nYou are a world-class SEO strategist and emotionally intuitive content writer. Your task is to generate **1 compelling blog article ideas** based on YouTube video metadata inputs and data from internet.\n\n## INPUTS\n• **Video Title**: {{ $('get-fields-from-youtube-video').item.json.title }}\n• **Video Description**: {{ $('get-fields-from-youtube-video').item.json.description }}  \n• **Video Transcription**: {{ $json.transcription ?? \"\" }}\n• **Video Categories**: {{ $json.tags }}\n• **videoId**: {{ $json.videoId }}\n---\n\n## YOUR TASK\n\nGenerate **1 blog post ideas** that are:\n\n• **Inspired by the video’s content** (title, description, transcription, or categories)  \n• Connected to a **relevant trend, cultural moment, or global/industry theme**  \n• Emotionally resonant, human, and **story-driven**  \n• Structured for **strong SEO and high shareability**  \n• Written in a format such as: **listicle, opinion, explainer, analysis, or narrative story**\n\n---\n\n## FORMAT FOR EACH IDEA\n\n1. **Working Title** — attention-grabbing and SEO-friendly  \n2. **1–2 sentence summary** explaining the article’s hook, emotional relevance, and unique angle  \n3. **Optional Note** — how it ties back to the video or a trend (e.g., “Inspired by [Video Topic] and recent discussions around [Trend]”)\n\n---\n\n## RULES\n\n• If the transcription is **undefined**, fall back to using the **Video Title + Video Categories** for content inspiration  \n• Avoid generic angles — prioritize storytelling that **feels relevant, surprising, or insightful**  \n• Output should be **indistinguishable from a top-tier human content strategist**\n\n---\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        3280,
+        -1616
+      ],
+      "id": "480921ff-3ab6-4edc-85fb-042ae2a97b54",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3296,
+        -1312
+      ],
+      "id": "49d154f0-c4f8-4d05-99ad-58cb003e67b2",
+      "name": "Get ideas and summary1",
+      "credentials": {
+        "openAiApi": {
+          "id": "y6eopVfbR1CLu5t9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        3872,
+        -1280
+      ],
+      "id": "101085e5-40eb-463e-92f3-ea64fc37c4a5",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "y6eopVfbR1CLu5t9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        4864,
+        -1328
+      ],
+      "id": "aa8d2696-3038-4172-98db-76b763395361",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "y6eopVfbR1CLu5t9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a world-class SEO content writer renowned for crafting blog content that feels deeply human. You specialize in emotional nuance, cultural insight, and narrative flow — ensuring each piece connects authentically with readers.\n\nYour task is to generate **3 to 5 compelling blog post section titles** based on the topic provided. These section titles must:\n\n• Be emotionally engaging and curiosity-piquing  \n• Feel natural — no robotic phrasing or generic clichés  \n• Fit a blog post structure (skimmable, clear, and value-driven)  \n• Encourage readers to keep scrolling and stay engaged  \n• Reflect the tone implied by the topic (e.g. serious, warm, humorous, inspiring)  \n\nAvoid clickbait. Use authentic language that sparks interest and builds connection.\n\n**Topic Title:**  \n{{ $json.title }}\n\n**Topic Summary (for context):**  \n{{ $json.summary }}\n\n**Output Format:**  \n- 3 to 5 emotionally resonant section titles  \n- No extra text — just the titles in a clean list\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        3936,
+        -1616
+      ],
+      "id": "16437e7a-ce78-49a9-90f7-098aa963ccd3",
+      "name": "Get sections1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"content\": [\n      {\n        \"section\": \"string\",\n\t\t\"body\": \"string\"\n      }\n    ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4464,
+        -1392
+      ],
+      "id": "55a68a53-abf8-43f2-836c-a849b7bb5676",
+      "name": "Structured Output Parser4"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a world-class SEO content writer known for your natural, emotionally intelligent, and conversational tone. Your writing is clear, human, and deeply engaging — as if speaking to a thoughtful friend. \n\nYour task is to write a blog section body for **each of the section titles provided** below. Each section should reflect the voice and structure guidelines outlined here:\n\n🔹 **Natural Writing Style Guidelines**:\n- Use simple, clear language and short sentences\n- Avoid robotic, over-polished, or overly “AI-sounding” phrasing\n- Be direct and conversational — start sentences with “and” or “but” if it feels natural\n- Remove fluff and marketing jargon\n- Be honest — it’s okay to admit uncertainty if it’s real\n- Prioritize clarity and connection over perfect grammar\n- Focus on emotional resonance\n\n🔹 **Blog/Newsletter Writing Enhancements**:\n- Always write from the reader’s perspective — solve a need or curiosity\n- Use real-world examples and relatable details\n- Blend simplicity with meaningful insight\n- Add micro-stories or analogies if helpful\n- Ask yourself:\n   • Would I say this out loud?\n   • Can this be simpler?\n   • Does it make instant sense?\n- Use light rhetorical questions and engaging transitions\n- Format with short paragraphs, bullets (if needed), and strong readability\n\n---\n\n**Your Task:**  \nFor each section title in the list below, write a corresponding blog section (150–300 words). Each section should:\n- Follow the tone and structure principles above  \n- Be written as a standalone piece (but still cohesive if read in a series)  \n- Exclude introductions, conclusions, or transitions between sections\n\n**Section Titles (Array):**  \n{{ $json.output.sections.map(text => text.text) }}\n\n**Output Format:**  \nReturn a list of sections in this format:\n- **[Section Title]**  \n  [Section Body Paragraphs]\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        4304,
+        -1616
+      ],
+      "id": "28e84524-49ba-4f6b-ad66-6768c1e5acd6",
+      "name": "Generate sections body1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const videoData = $(\"get-fields-from-youtube-video\").all();\nconst topicDataList = $(\"get-topics\").all();\n\nconst content = $input.all().map((item, index) => {\n  const videoIndex = Math.floor(index / 2); \n  \n  console.log('videoIndex', videoIndex)// 2 items por video\n  console.log('index', index)// 2 items por video\n  const youtubeVideoData = videoData[videoIndex].json;\n  const topicData = topicDataList[index].json;\n\n  const sections = item.json.output.content.map(content => ({\n    titulo: content.section,\n    contenido: content.body,\n  }));\n\n  sections.unshift({\n    titulo: \"Summary\",\n    contenido: topicData.summary,\n  });\n  \n  return {\n    title: topicData.title,\n    category: $input.all()[index].json.tags,\n    image: youtubeVideoData.urlImage,\n    youtubeChannelName: $input.all()[index].json.channelTitle,\n    secciones: sections,\n  };\n});\n\nreturn content"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4880,
+        -1632
+      ],
+      "id": "9f913331-1fb2-4298-9279-7d5c6a0d05bc",
+      "name": "Final body post1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a929920f-d0d8-479f-a739-761fdb3fba96",
+              "name": "channelId",
+              "value": "={{ $json.items[0].id.channelId }}",
+              "type": "string"
+            },
+            {
+              "id": "d8ea11a6-7768-4436-81b2-c2bb31a9fcb5",
+              "name": "channelTitle",
+              "value": "={{ $json.items[0].snippet.channelTitle }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1056,
+        -1616
+      ],
+      "id": "a8673139-a5e8-4552-af88-7e91fda4ed1d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"sections\": [\n      {\"text\": \"string\"},\n      {\"text\": \"string\"},\n      {\"text\": \"string\"}\n    ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4064,
+        -1392
+      ],
+      "id": "dc441520-788f-41b9-8cb8-b440a967e463",
+      "name": "Structured Output Parser5"
+    },
+    {
+      "parameters": {
+        "jsCode": "const totalTopics = [];\n\nfor (const item of $input.all()) {\n  const topics = item.json.output.json.map((topic) => topic);\n  totalTopics.push(...topics);\n}\n\n\n\nreturn [...totalTopics]"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3616,
+        -1792
+      ],
+      "id": "195687a7-0543-47ee-b5b3-1c4bc44b6c94",
+      "name": "get-topics"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId={{ $json.playlistId }}&maxResults=1&key={{ $env[\"YOUTUBE_API_KEY\"] }}",
+        "options": {
+          "timeout": 1000000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1728,
+        -1616
+      ],
+      "id": "545fd021-8a3d-4a13-bc5e-9541f63bce89",
+      "name": "get-data-youtube-video"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env[\"API_URL\"]}}/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5152,
+        -1536
+      ],
+      "id": "9489fc7c-2cb5-4594-8cce-979ff1efe0de",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9f3e7792-c75f-4024-b619-c97b47e02fca",
+              "name": "videoId",
+              "value": "={{ $json.items[0].snippet.resourceId.videoId }}",
+              "type": "string"
+            },
+            {
+              "id": "0490c460-6c6a-46cb-8ca4-1c18af6067e7",
+              "name": "urlImage",
+              "value": "={{ $json.items[0].snippet.thumbnails.standard.url }}",
+              "type": "string"
+            },
+            {
+              "id": "84004c6d-9750-4bad-97d3-4a12361500d5",
+              "name": "title",
+              "value": "={{ $json.items[0].snippet.title }}",
+              "type": "string"
+            },
+            {
+              "id": "00038d11-7cc5-4dff-85be-a10b68c6ddd1",
+              "name": "description",
+              "value": "={{ $json.items[0].snippet.description }}",
+              "type": "string"
+            },
+            {
+              "id": "20491bb3-6bdc-4cd1-9d32-a6e872227211",
+              "name": "channelTitle",
+              "value": "={{ $json.items[0].snippet.channelTitle }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1952,
+        -1616
+      ],
+      "id": "0aa12e4a-0d3b-45e2-8829-e42dd8937925",
+      "name": "get-fields-from-youtube-video"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"json\": [{\"title\": \"string\", \"summary\": \"string\", \"videoId\": \"string\"}]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3440,
+        -1392
+      ],
+      "id": "d567838b-bd43-4cc9-a95c-73f469922ecb",
+      "name": "Structured Output Parser3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env[\"API_URL\"] }}/transcriptions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{JSON.stringify($json.videosIds)}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2400,
+        -1552
+      ],
+      "id": "4e3a0212-5feb-445c-8a0a-7b0acfac2178",
+      "name": "get-transcription-videos"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all().map((item) => {\n  return {\n    videoId: item.json.videoId,\n  };\n});\n\nreturn [{json: {videosIds: data}}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        -1552
+      ],
+      "id": "b00a16ae-3ee0-44d9-9b4c-b05ee571b8ce",
+      "name": "get-videosIds"
+    },
+    {
+      "parameters": {
+        "url": "=https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id={{ $json.channelId }}&key={{ $env[\"YOUTUBE_API_KEY\"] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        -1616
+      ],
+      "id": "53a25b48-7300-415f-8ba0-edaaee3cf0e7",
+      "name": "get-playlistIds"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"data\": [\n      {\n        \"channelName\": \"channel name\",\n        \"description\": \"description channel\",\n        \"tags\": \"free-fire, other tag, other, tag\"\n      }\n    ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        144,
+        -1392
+      ],
+      "id": "d744afff-5e53-44c3-aa01-ceebfcbcb3aa",
+      "name": "structured-outpu Parser2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const validPlaylistItems = $input.all().filter(item => {\n  const items = item.json.items;\n  return (\n    Array.isArray(items) &&\n    items.length > 0 &&\n    typeof items[0]?.contentDetails?.relatedPlaylists?.uploads === 'string' &&\n    items[0].contentDetails.relatedPlaylists.uploads !== ''\n  );\n});\n\nreturn validPlaylistItems.map(item => {\n  return {\n    json: {\n      playlistId: item.json.items[0].contentDetails.relatedPlaylists.uploads,\n      channelId: item.json.items[0].id\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        -1616
+      ],
+      "id": "2aed1b5d-a6ee-454b-ad8a-39afe94ea19e",
+      "name": "playlistId-sanitize-data"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data.results",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        2624,
+        -1552
+      ],
+      "id": "88ee4c18-cf0b-4944-a11b-c0c4f812ba19",
+      "name": "Split Out2"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3008,
+        -1808
+      ],
+      "id": "cdf9837f-1541-469a-bb08-bb29074badbb",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        640,
+        -1872
+      ],
+      "id": "f8d75159-3264-4c8d-9933-c9ee15123a4d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst canalesSeleccionados = items[0].json.canales;\nconst todosLosCanales = items[1].json.output.data;\n\nconst data = todosLosCanales.filter((channelData) =>\n  canalesSeleccionados.includes(channelData.channelName)\n);\n\nreturn [{ json: {data} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        -1872
+      ],
+      "id": "6443336d-7fb3-488a-a6be-3276850610ff",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        4640,
+        -1824
+      ],
+      "id": "bab0ae63-b484-4e4b-a09e-a5f061dac61a",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        -1872
+      ],
+      "id": "dfbbab85-0644-4a58-b58c-61cd499b670f",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "videoId",
+        "joinMode": "enrichInput1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3792,
+        -1968
+      ],
+      "id": "a2734c76-db46-4729-81da-e5c8beb03091",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        -1376
+      ],
+      "id": "f3fec95c-324b-47b2-80f3-b9a007371839",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "df3wcNOV9HUjPgJq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        3184,
+        -1456
+      ],
+      "id": "971ad085-3ccf-4c7e-b566-40bd442629de",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "df3wcNOV9HUjPgJq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        3808,
+        -1424
+      ],
+      "id": "8bf0e470-fd2a-4a31-b12b-773057449a2c",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "df3wcNOV9HUjPgJq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        4288,
+        -1376
+      ],
+      "id": "3edfde14-0147-4c01-b8ec-f48fc6a3ec6c",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "df3wcNOV9HUjPgJq",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "get-topics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ideas and summary1": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "OpenAI Chat Model4": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Get sections1": {
+      "main": [
+        [
+          {
+            "node": "Generate sections body1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser4": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Generate sections body1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate sections body1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Final body post1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "get-playlistIds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser5": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Get sections1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-topics": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "get-data-youtube-video": {
+      "main": [
+        [
+          {
+            "node": "get-fields-from-youtube-video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-fields-from-youtube-video": {
+      "main": [
+        [
+          {
+            "node": "get-videosIds",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser3": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-transcription-videos": {
+      "main": [
+        [
+          {
+            "node": "Split Out2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-videosIds": {
+      "main": [
+        [
+          {
+            "node": "get-transcription-videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get-playlistIds": {
+      "main": [
+        [
+          {
+            "node": "playlistId-sanitize-data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "structured-outpu Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "playlistId-sanitize-data": {
+      "main": [
+        [
+          {
+            "node": "get-data-youtube-video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Final body post1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get sections1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Get sections1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate sections body1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "30b332fe-3bd7-4a43-a7b5-13a48ceff478",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0e47fe2d9d18491d08f1e9662a75b818144b75fb4bbd9f1e645535ee231a6ef2"
+  },
+  "id": "3BfuUGoH9SPBoMD9",
+  "tags": []
+}

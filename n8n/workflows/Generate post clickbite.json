@@ -1,0 +1,463 @@
+{
+  "name": "Generate post clickbite",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        272,
+        -1120
+      ],
+      "id": "f7bbb630-e278-4319-8bbb-bdeeb70ab61b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=PROMPT PARA N8N – FORMATO PLANO\n\nYou are a world-class SEO content writer specializing in humanlike content that emotionally connects with gamers looking for advantages or free rewards. Your writing blends gamer-savvy insights with natural language that resonates deeply with the audience.\n\nCONTEXT\nThis prompt is used within an N8N node. The tag {{ $json.data }} will be dynamically replaced with the topic/headline at runtime.\n\nTASK\nWrite a compelling tutorial article based on the provided headline. Your goal is to make it feel plausible and timely—especially for audiences seeking exploits, glitches, tricks, or freebies.\n\nTARGET AUDIENCE\nPeople who want something free or crave a hidden edge in gaming (e.g., XP boosts, free skins, shortcut exploits, unreleased items).\n\nOUTPUT FORMAT\nRespond only with a valid JSON using the following schema:\n\n{\n\"title\": \"title\",\n\"category\": \"category, outline, outline2, outline3\",\n\"secciones\": [\n{\n\"titulo\": \"titulo section\",\n\"contenido\": \"contenido seccion\"\n},\n{\n\"titulo\": \"titulo section\",\n\"contenido\": \"contenido seccion\"\n}\n]\n}\n\nDo not include any explanation or meta-commentary.\n\nPROCESS\n\nRead the dynamic topic: {{ $json.data }}\n\nDraft a brief 3–5 bullet outline to guide the article.\n\nWrite a natural-sounding, high-engagement tutorial using sub-headings and a casual, emotionally aware tone.\n\nUse urgency language (e.g., \"might be patched soon\").\n\nInclude a soft disclaimer if the content involves exploits.\n\nSTYLE & TONE\n\nConversational, a bit cheeky, emotionally tuned.\n\nUse contractions, idioms, and light humor.\n\nSprinkle in relatable metaphors, pop culture references, and gamer lingo.\n\nKeep the reading ease high (≈ Flesch 80).\n\nVary sentence length, include digressions, and maintain rhythm.\n\nSTRUCTURE\n\nHeadline (\"title\")\n\nCategory (game + main ideas)\n\n2–3 conversational subheadings\n\nEach section should be ~1–3 paragraphs, mix paragraph lengths\n\nMANDATORY RULES\n\nDo NOT use these words: opt, dive, unlock, unleash, intricate, utilization, transformative, alignment, proactive, scalable, benchmark\n\nDo NOT use these phrases: \"in this world\", \"at the end of the day\", \"best practices\", \"in today’s world\", etc.\n\nMinimize adverbs, avoid robotic patterns, vary language.\n\nUse both active and passive voice naturally.\n\nAlways include a soft disclaimer for anything glitch-related: “Use at your own risk—patches drop fast.”\n\nFINAL OUTPUT\nReturn only the JSON as specified above. No other text.",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        1664,
+        -1072
+      ],
+      "id": "3610f828-ce99-4c36-b6cf-1bb35b025b46",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1648,
+        -848
+      ],
+      "id": "dfdaf193-cb3e-4115-98d2-4227ab3c16b3",
+      "name": "Get ideas and summary",
+      "credentials": {
+        "openAiApi": {
+          "id": "y6eopVfbR1CLu5t9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env[\"API_URL\"]}}/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3040,
+        -1248
+      ],
+      "id": "8fe14479-aac0-49d2-b9a5-393532409ec5",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return $input.item.json.output"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2176,
+        -928
+      ],
+      "id": "a5df6d97-fb87-40c5-8a0c-cd16159ff8ae",
+      "name": "Final body post"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "gpt-4o"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        -896
+      ],
+      "id": "558a4fde-04a8-4c4f-823d-c4d654d4a5fd",
+      "name": "Generator ideas for week posts",
+      "credentials": {
+        "openAiApi": {
+          "id": "y6eopVfbR1CLu5t9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Act as a **gaming content strategist and viral blog headline copywriter**. Your task is to create **fake but deceptively believable blog post titles** that use **clickbait techniques** to entice readers. These are purely fictional but must sound realistic enough to drive clicks from gamers.\n\n**Target Audience:** Players of video games such as **Free Fire**, **Roblox**, **Brawl Stars**, and more.\n\n**Goal:** Generate curiosity and engagement with irresistibly click-worthy titles.\n\n---\n\n### Output Instructions:\n- Write **20 unique blog post titles**, grouped under the following categories (but **do not use bullet points or numbered lists**):\n  - **Free Fire**\n  - **Roblox**\n  - **Brawl Stars**\n  - **Valorant Stars**\n  - **Mixed Titles** (includes cross-game content like Valorant, skin giveaways, etc.)\n\n### Title Guidelines:\n- Use **high-conversion clickbait language** (e.g., “secret,” “glitch,” “epic,” “new,” “this method,” “you won’t believe,” “works in 2025!”).\n- Include **fictional in-game rewards** with varying **tiers**:\n  - Small: 10–50 (e.g., Diamonds, Robux, Gems)\n  - Medium: 100–500\n  - Large: 1000+\n- Specify **reward timeframes** creatively:\n  - Instant: “right now”, “instantly”\n  - Recurring: “daily”, “weekly”, “monthly”\n  - Undefined: “every time you try this,” “always works,” etc.\n- Ensure **at least 3 titles** reference the current year (e.g., “Still Works in 2025!”).\n- **Avoid** any references to real player matchups or PvP challenges — focus only on what users can do *individually* to supposedly get free items.\n- Vary phrasing formats: blend how-to’s, discoveries, confessions, odd hacks, and numerical lists without formatting them as actual lists.\n- Make titles **feel trending and timely** — draw on popular topics or game updates to enhance believability.\n\n---\n\n### Important Style Constraints:\n- **Do not format as a list** (no numbering or bullet points).\n- Titles should feel like they came from mobile gaming blogs, Reddit posts, or YouTube thumbnails.\n- Aim for punchy, scroll-stopping language with emotional hooks and curiosity gaps.\n\nUse your knowledge of gaming culture, psychology, and trends to craft viral-level clickbait that’s just *real enough* to pass the scroll test.\n",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        544,
+        -1120
+      ],
+      "id": "6a7bfe2f-cde1-4196-8966-0a31ef3e6e3e",
+      "name": "Basic LLM Chain1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"freefire\": [\"titulo1\", \"titulo2\"],\n\t\"roblox\": [\"titulo1\", \"titulo2\"],\n    \"brawlstars\": [\"titulo1\", \"titulo2\"],\n    \"mix\": [\"titulo1\", \"titulo2\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        704,
+        -896
+      ],
+      "id": "936b4f03-3b69-4c55-9351-f97dfe933b94",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsCode": "function seleccionarElementoAleatorio(arr) {\n  \n  if (!Array.isArray(arr) || arr.length === 0) {\n    throw new Error('Debes proporcionar un array no vacío');\n  }\n  \n  const indice = Math.floor(Math.random() * arr.length);\n  return arr[indice];\n}\n\nconst finalTopics = [];\n\nconst input = $input.first().json;\nconst games = Object.keys(input.output);\n\nfor (const game of games) {\n\n  const topicSelected = seleccionarElementoAleatorio(input.output[`${game}`])\n  finalTopics.push(topicSelected)\n}\n\nreturn [{json: {data: finalTopics}}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        -1120
+      ],
+      "id": "b3e36190-0121-49d1-ac7d-d4ab22185b28",
+      "name": "selected-ideas"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        -1120
+      ],
+      "id": "3b04637e-78eb-4f89-8125-a81d4dd0e150",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n      \"title\": \"title\",\n      \"category\": \"category, outline, outline2, outline3\",\n      \"secciones\": [\n        {\n          \"titulo\": \"titulo section\",\n          \"contenido\": \"contenido seccion\"\n        },\n        {\n          \"titulo\": \"titulo section\",\n          \"contenido\": \"contenido seccion\"\n        }\n      ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1872,
+        -832
+      ],
+      "id": "f856410a-8291-46d4-b8c4-b89bd7ef89ed",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "url": "=https://es.wallpapers.com/search/{{ $json.output.game }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2272,
+        -1344
+      ],
+      "id": "1205c4b9-8273-4ce7-b6b2-1f9449933da5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "function elegirAlAzar(arr, cantidad) {\n  if (!Array.isArray(arr)) throw new Error(\"El primer argumento debe ser un array.\");\n  if (typeof cantidad !== 'number' || cantidad < 1) throw new Error(\"La cantidad debe ser un número mayor que 0.\");\n\n  const mezclado = [...arr];\n  for (let i = mezclado.length - 1; i > 0; i--) {\n    const j = Math.floor(Math.random() * (i + 1));\n    [mezclado[i], mezclado[j]] = [mezclado[j], mezclado[i]];\n  }\n  return mezclado.slice(0, Math.min(cantidad, mezclado.length));\n}\n\n\nconst html = $json[\"data\"]; // body es donde n8n guarda la respuesta del HTML\n\nconst matches = html.match(/https:\\/\\/wallpapers\\.com\\/images\\/high\\/[^\"]+\\.webp/g);\n\nconst data = (matches || []).slice(0, 5).map(url => ({ json: { imageUrl: url } }))\n\nconst imgUrl = data.map(img => img.json.imageUrl)\n\nconst finalImage = elegirAlAzar(imgUrl, 1)\n\nreturn {image: finalImage[0], youtubeChannelName: \"GamingMoney\"}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2512,
+        -1376
+      ],
+      "id": "45d2cc11-d62d-4452-ae03-79d86afd0f36",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.data }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "game",
+              "description": "Its the name of a videogame it could be \"free fire, roblox, brawl stars, valorant\" if you dont find out anything return \"gaming\""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        1872,
+        -1456
+      ],
+      "id": "46677cfa-d4a4-409d-b491-9dc70e28da5b",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1808,
+        -1280
+      ],
+      "id": "1c861d97-49b8-489f-9fee-d9e4fbdd0517",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "y6eopVfbR1CLu5t9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2768,
+        -1200
+      ],
+      "id": "8076cd80-1a95-48aa-bd38-a064b2d869f0",
+      "name": "Merge"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Final body post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get ideas and summary": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final body post": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Generator ideas for week posts": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "selected-ideas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "selected-ideas": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        []
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4f359ce1-082e-49f2-803a-d74025f432fd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0e47fe2d9d18491d08f1e9662a75b818144b75fb4bbd9f1e645535ee231a6ef2"
+  },
+  "id": "xcp7KZJEUlW6cHA0",
+  "tags": []
+}
