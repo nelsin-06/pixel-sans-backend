@@ -19,4 +19,9 @@ export class PaginationQueryDto {
   @Type(() => String)
   @IsString()
   category: string = 'all';
+
+  @IsOptional()
+  @Type(() => String)
+  @IsString()
+  title?: string;
 }

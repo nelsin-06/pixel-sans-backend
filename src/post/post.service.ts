@@ -71,22 +71,38 @@ export class PostService {
   async findAllPaginated(
     paginationQuery: PaginationQueryDto,
   ): Promise<PaginatedResponseDto<Post>> {
-    const { page = 1, pageSize = 10, category = 'all' } = paginationQuery;
+    const {
+      page = 1,
+      pageSize = 10,
+      category = 'all',
+      title,
+    } = paginationQuery;
     const skip = (page - 1) * pageSize;
 
     const filter: FilterQuery<Post> = {};
-    if (category !== 'all') {
-      const allPosts = await this.postModel.find().exec();
-      const filteredPosts = allPosts.filter((post) => {
-        const similarity = this.calculateSimilarity(
-          post.category.toLowerCase(),
-          category.toLowerCase(),
-        );
-        return similarity >= 0.5; // 50% de similitud
-      });
 
-      const filteredIds = filteredPosts.map((post) => post._id);
-      filter._id = { $in: filteredIds };
+    // Handle title filtering with flexible keyword matching
+    if (title) {
+      // Split the search term by spaces and create a regex that matches any of the keywords
+      const keywords = title.trim().split(/\s+/);
+      const keywordPattern = keywords
+        .map(
+          (keyword) => keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), // Escape special regex characters
+        )
+        .join('|'); // Join with OR operator
+      filter.title = { $regex: keywordPattern, $options: 'i' };
+    }
+
+    // Handle category filtering with flexible keyword matching
+    if (category !== 'all') {
+      // Split the search term by spaces and create a regex that matches any of the keywords
+      const keywords = category.trim().split(/\s+/);
+      const keywordPattern = keywords
+        .map(
+          (keyword) => keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), // Escape special regex characters
+        )
+        .join('|'); // Join with OR operator
+      filter.category = { $regex: keywordPattern, $options: 'i' };
     }
 
     const [items, totalItems] = await Promise.all([
