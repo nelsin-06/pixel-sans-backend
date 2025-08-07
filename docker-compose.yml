@@ -41,6 +41,8 @@ services:
       - N8N_RUNNERS_ENABLED=true
     ports:
       - "5678:5678"
+    env_file:
+      - .env
     volumes:
       - n8n_data:/home/node/.n8n
     container_name: n8n
