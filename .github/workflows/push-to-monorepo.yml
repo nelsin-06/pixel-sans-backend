@@ -19,7 +19,7 @@ jobs:
 
       - name: Clone monorepo
         run: |
-          git clone https://x-access-token:${{ secrets.MONOREPO_TOKEN }}@github.com/nelsin-06/pixel-sans.git
+          git clone https://x-access-token:${{secrets.MONOREPO_TOKEN}}@github.com/nelsin-06/pixel-sans.git
           cd pixel-sans
           git remote add backend https://github.com/nelsin-06/pixel-sans-backend.git
           git fetch backend
